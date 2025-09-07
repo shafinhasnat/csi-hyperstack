@@ -1,5 +1,5 @@
 # Hyperstack CSI Driver
-Current released image - `reg.digitalocean.ngbackend.cloud/hyperstack-csi-driver/csi:v0.0.1`
+Latest released image - `ghcr.io/nexgencloud/csi-hyperstack/csi:latest`
 
 ## Introduction
 This documentation provides instructions for installing and using the Hyperstack CSI Driver. The CSI provisioner for hyerstack CSI driver is `hyperstack.csi.nexgencloud.com`.
