@@ -14,6 +14,8 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
       -o /csi-hyperstack .
 
 FROM alpine:3.20 as runtime
+RUN apk add --no-cache --update e2fsprogs
+
 COPY --from=build /csi-hyperstack .
 RUN chmod +x csi-hyperstack
 RUN mkdir -p /csi
