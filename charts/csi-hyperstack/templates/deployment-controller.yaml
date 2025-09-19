@@ -24,7 +24,7 @@ spec:
         - name: csi-hyperstack
           image: {{ .Values.components.csiHyperstack.image }}:{{ .Values.components.csiHyperstack.tag }}
           imagePullPolicy: {{ .Values.components.csiHyperstack.imagePullPolicy }}
-          command: ["csi-hyperstack"]
+          # command: ["csi-hyperstack"]
           args:
             - "start"
             - "--endpoint=unix:///csi/csi.sock"

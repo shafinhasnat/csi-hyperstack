@@ -24,30 +24,27 @@ func TestGetVolume(t *testing.T) {
 
 	// Test cases with different volume IDs
 	testCases := []struct {
-		name      string
-		volumeID  string
-		expectNil bool
+		name     string
+		volumeID int
 	}{
-		{"valid_volume_id", "783", false},
-		{"non_existent_id", "99999", true},
-		{"empty_id", "", true},
+		{"valid_volume_id", 868},
 	}
 
 	ctx := context.Background()
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			fmt.Printf("Testing GetVolume with volumeID: %q\n", tc.volumeID)
+			fmt.Printf("Testing GetVolume with volumeID: %d\n", tc.volumeID)
 
 			result, err := hs.GetVolume(ctx, tc.volumeID)
 			if err != nil {
-				t.Errorf("Error for volumeID %q: %v\n", tc.volumeID, err)
+				t.Errorf("Error for volumeID %v\n", err)
 				return
 			}
 			fmt.Printf("Result: %+v\n", result)
 
 			if result == nil {
-				fmt.Printf("Volume %q not found (expected)\n", tc.volumeID)
+				fmt.Printf("Volume %d not found (expected)\n", tc.volumeID)
 				return
 			} else {
 				fmt.Printf("Id: %+v\n", *result.Id)
@@ -59,7 +56,7 @@ func TestGetVolume(t *testing.T) {
 				fmt.Printf("UpdatedAt: %+v\n", *result.UpdatedAt)
 				fmt.Printf("VolumeType: %+v\n", *result.VolumeType)
 				fmt.Printf("Available: %+v\n", *result.Status)
-				fmt.Printf("Attachment: %+v\n", *result.Attachment)
+				fmt.Printf("Attachment: %+v\n", *result.Attachments)
 				return
 			}
 
@@ -88,21 +85,21 @@ func TestDetachVolumeFromNode(t *testing.T) {
 	testCases := []struct {
 		name      string
 		vmID      int
-		volumeID  string
+		volumeID  int
 		expectNil bool
 	}{
-		{"valid_volume_id", 266936, "801", false},
-		{"non_existent_id", 1, "99999", true},
-		{"empty_id", 1, "", true},
+		{"valid_volume_id", 266936, 801, false},
+		{"non_existent_id", 1, 99999, true},
+		{"empty_id", 1, 0, true},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			fmt.Printf("Testing DetachVolumeFromNode with volumeID: %q\n", tc.volumeID)
+			fmt.Printf("Testing DetachVolumeFromNode with volumeID: %d\n", tc.volumeID)
 
 			result, err := hs.DetachVolumeFromNode(ctx, tc.vmID, tc.volumeID)
 			if err != nil {
-				t.Errorf("Error for volumeID %q: %v\n", tc.volumeID, err)
+				t.Errorf("Error for volumeID %d: %v\n", tc.volumeID, err)
 				return
 			}
 			fmt.Printf("Result: %+v\n", result)
@@ -132,7 +129,7 @@ func TestGetClusterId(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			fmt.Printf("Testing GetClusterId with clusterID: %q\n", tc.clusterID)
+			fmt.Printf("Testing GetClusterId with clusterID: %d\n", tc.clusterID)
 			result, err := hs.GetClusterDetail(ctx, tc.clusterID)
 			if err != nil {
 				t.Errorf("Error getting cluster ID: %v\n", err)

@@ -28,7 +28,7 @@ spec:
             privileged: true
             runAsUser: 0
             runAsGroup: 0
-          command: ["csi-hyperstack"]
+          # command: ["csi-hyperstack"]
           args:
             - "start"
             - "--endpoint=unix:///csi/csi.sock"
@@ -36,6 +36,10 @@ spec:
             - "--hyperstack-api-key={{ .Values.hyperstack.apiAddress }}"
             - "--service-node-enabled"
           env:
+            - name: DRIVER_NAME
+              value: "hyperstack.csi.nexgencloud.com"
+            - name: DRIVER_VERSION
+              value: "v1.0.0"
             - name: KUBE_NODE_NAME
               valueFrom:
                 fieldRef:

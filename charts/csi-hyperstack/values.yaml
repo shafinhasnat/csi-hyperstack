@@ -1,8 +1,10 @@
 components:
   csiHyperstack:
     imagePullPolicy: Always
-    image: ghcr.io/nexgencloud/csi-hyperstack/csi
-    tag: v0.0.2
+    # image: ghcr.io/nexgencloud/csi-hyperstack/csi
+    # tag: v0.0.2
+    image: shafinhasnat/csi-driver
+    tag: wip
   nodeDriverRegistrar:
     image: registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.10.1
   csiAttacher:
