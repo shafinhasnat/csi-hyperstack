@@ -203,7 +203,7 @@ func (cs *controllerServer) ControllerPublishVolume(ctx context.Context, req *cs
 		klog.Infof("ControllerPublishVolume: Volume %s is already in use", *getVolume.Name)
 		return &csi.ControllerPublishVolumeResponse{
 			PublishContext: map[string]string{
-				volNameKeyFromControllerPublishVolume: *getVolume.Name,
+				volNameKeyFromControllerPublishVolume: *(*getVolume.Attachments)[0].Device,
 			},
 		}, nil
 	}
@@ -240,7 +240,7 @@ func (cs *controllerServer) ControllerPublishVolume(ctx context.Context, req *cs
 	}
 	return &csi.ControllerPublishVolumeResponse{
 		PublishContext: map[string]string{
-			volNameKeyFromControllerPublishVolume: *getVolume.Name,
+			volNameKeyFromControllerPublishVolume: *(*getVolume.Attachments)[0].Device,
 		},
 	}, nil
 }
