@@ -7,6 +7,7 @@ import (
 	"github.com/NexGenCloud/hyperstack-sdk-go/lib/clusters"
 	"github.com/NexGenCloud/hyperstack-sdk-go/lib/volume"
 	"github.com/NexGenCloud/hyperstack-sdk-go/lib/volume_attachment"
+	"github.com/kubernetes-csi/csi-lib-utils/protosanitizer"
 
 	"golang.org/x/net/context"
 	"k8s.io/csi-hyperstack/pkg/metrics"
@@ -96,9 +97,30 @@ func (hs *Hyperstack) GetVolume(ctx context.Context, volumeID int) (*volume.Volu
 		return nil, fmt.Errorf("volume details failed with 401 error: %v", result.JSON401)
 	}
 	if result.JSON405 != nil {
-		return nil, fmt.Errorf("volume details failed with 40 error: %v", result.JSON405)
+		return nil, fmt.Errorf("volume details failed with 405 error: %v", result.JSON405)
 	}
-	return result.JSON200.Volume, nil
+	attachments := []volume.AttachmentsFieldsForVolume{}
+	for _, attachment := range *result.JSON200.Volume.Attachments {
+		if *attachment.Status == "ATTACHED" {
+			attachments = append(attachments, attachment)
+		}
+	}
+	response := volume.VolumeFields{
+		Attachments: &attachments,
+		Bootable:    result.JSON200.Volume.Bootable,
+		CallbackUrl: result.JSON200.Volume.CallbackUrl,
+		CreatedAt:   result.JSON200.Volume.CreatedAt,
+		Description: result.JSON200.Volume.Description,
+		Environment: result.JSON200.Volume.Environment,
+		Id:          result.JSON200.Volume.Id,
+		ImageId:     result.JSON200.Volume.ImageId,
+		Name:        result.JSON200.Volume.Name,
+		Size:        result.JSON200.Volume.Size,
+		Status:      result.JSON200.Volume.Status,
+		UpdatedAt:   result.JSON200.Volume.UpdatedAt,
+		VolumeType:  result.JSON200.Volume.VolumeType,
+	}
+	return &response, nil
 }
 
 // CreateVolume creates a volume of given size
@@ -231,11 +253,57 @@ func (hs *Hyperstack) AttachVolumeToNode(ctx context.Context, virtualMachineId i
 	return &attachments[0], nil
 }
 
+func (hs *Hyperstack) UpdateVolumeAttachment(ctx context.Context, volumeId int) (*volume_attachment.UpdateAVolumeAttachmentResponse, error) {
+	client, err := volume_attachment.NewClientWithResponses(
+		hs.Client.ApiServer,
+		volume_attachment.WithRequestEditorFn(hs.Client.GetAddHeadersFn()),
+	)
+	if err != nil {
+		return nil, err
+	}
+	getVolume, err := hs.GetVolume(ctx, volumeId)
+	if err != nil {
+		return nil, err
+	}
+
+	var volumeAttachmentID = *(*getVolume.Attachments)[0].Id
+
+	var protected = false
+	result, err := client.UpdateAVolumeAttachmentWithResponse(ctx, volumeAttachmentID, volume_attachment.UpdateVolumeAttachmentPayload{Protected: &protected})
+	if result == nil {
+		return nil, fmt.Errorf("received nil response from volume attachment API")
+	}
+	if result.JSON400 != nil {
+		return nil, fmt.Errorf("volume attachment update failed with 400 error: %v", result.JSON400)
+	}
+	if result.JSON401 != nil {
+		return nil, fmt.Errorf("volume attachment update failed with 401 error: %v", result.JSON401)
+	}
+	if result.JSON404 != nil {
+		return nil, fmt.Errorf("volume attachment update failed with 404 error: %v", protosanitizer.StripSecrets(result.JSON404))
+	}
+	if result.JSON405 != nil {
+		return nil, fmt.Errorf("volume attachment update failed with 405 error: %v", result.JSON405)
+	}
+	if result.JSON200 == nil {
+		return nil, fmt.Errorf("volume attachment update response is nil")
+	}
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 func (hs *Hyperstack) DetachVolumeFromNode(ctx context.Context, virtualMachineId int, volumeID int) (*volume_attachment.DetachVolumes, error) {
 	client, err := volume_attachment.NewClientWithResponses(
 		hs.Client.ApiServer,
 		volume_attachment.WithRequestEditorFn(hs.Client.GetAddHeadersFn()),
 	)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = hs.UpdateVolumeAttachment(ctx, volumeID)
 	if err != nil {
 		return nil, err
 	}
@@ -252,22 +320,22 @@ func (hs *Hyperstack) DetachVolumeFromNode(ctx context.Context, virtualMachineId
 		return nil, err
 	}
 	if result == nil {
-		return nil, fmt.Errorf("received nil response from volume attachment API")
+		return nil, fmt.Errorf("received nil response from volume detachment API")
 	}
 	if result.JSON400 != nil {
-		return nil, fmt.Errorf("volume attachment failed with 400 error: %v", result.JSON400)
+		return nil, fmt.Errorf("volume detachment failed with 400 error: %v", result.JSON400)
 	}
 	if result.JSON401 != nil {
-		return nil, fmt.Errorf("volume attachment failed with 401 error: %v", result.JSON401)
+		return nil, fmt.Errorf("volume detachment failed with 401 error: %v", result.JSON401)
 	}
 	if result.JSON404 != nil {
-		return nil, fmt.Errorf("volume attachment failed with 404 error: %v", result.JSON404)
+		return nil, fmt.Errorf("volume detachment failed with 404 error: %v", result.JSON404)
 	}
 	if result.JSON405 != nil {
-		return nil, fmt.Errorf("volume attachment failed with 405 error: %v", result.JSON405)
+		return nil, fmt.Errorf("volume detachment failed with 405 error: %v", result.JSON405)
 	}
 	if result.JSON200 == nil {
-		return nil, fmt.Errorf("volume attachment response is nil")
+		return nil, fmt.Errorf("volume detachment response is nil")
 	}
 	message := *result.JSON200.Message
 	status := *result.JSON200.Status
@@ -290,9 +358,6 @@ func (hs *Hyperstack) GetClusterDetail(ctx context.Context, clusterID int) (*clu
 	}
 
 	result, err := client.GettingClusterDetailWithResponse(ctx, clusterID)
-	if err != nil {
-		return nil, err
-	}
 	if err != nil {
 		return nil, err
 	}

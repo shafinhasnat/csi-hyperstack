@@ -238,11 +238,7 @@ func (cs *controllerServer) ControllerPublishVolume(ctx context.Context, req *cs
 			time.Sleep(2 * time.Second)
 		}
 	}
-	return &csi.ControllerPublishVolumeResponse{
-		PublishContext: map[string]string{
-			volNameKeyFromControllerPublishVolume: *(*getVolume.Attachments)[0].Device,
-		},
-	}, nil
+	return &csi.ControllerPublishVolumeResponse{}, nil
 }
 
 func (cs *controllerServer) ControllerUnpublishVolume(ctx context.Context, req *csi.ControllerUnpublishVolumeRequest) (*csi.ControllerUnpublishVolumeResponse, error) {
@@ -284,25 +280,25 @@ func (cs *controllerServer) ControllerUnpublishVolume(ctx context.Context, req *
 
 func (cs *controllerServer) ListVolumes(ctx context.Context, req *csi.ListVolumesRequest) (*csi.ListVolumesResponse, error) {
 	klog.Infof("ListVolumes: called with %+#v request", req)
-	klog.Warning("DeleteVolume: Not implemented yet!")
+	klog.Warning("ListVolumes: Not implemented yet!")
 	return &csi.ListVolumesResponse{}, nil
 }
 
 func (cs *controllerServer) CreateSnapshot(ctx context.Context, req *csi.CreateSnapshotRequest) (*csi.CreateSnapshotResponse, error) {
 	klog.Infof("CreateSnapshot: called with args %+v", protosanitizer.StripSecrets(*req))
-	klog.Warning("DeleteVolume: Not implemented yet!")
+	klog.Warning("CreateSnapshot: Not implemented yet!")
 	return &csi.CreateSnapshotResponse{}, nil
 }
 
 func (cs *controllerServer) DeleteSnapshot(ctx context.Context, req *csi.DeleteSnapshotRequest) (*csi.DeleteSnapshotResponse, error) {
 	klog.Infof("DeleteSnapshot: called with args %+v", protosanitizer.StripSecrets(*req))
-	klog.Warning("DeleteVolume: Not implemented yet!")
+	klog.Warning("DeleteSnapshot: Not implemented yet!")
 	return &csi.DeleteSnapshotResponse{}, nil
 }
 
 func (cs *controllerServer) ListSnapshots(ctx context.Context, req *csi.ListSnapshotsRequest) (*csi.ListSnapshotsResponse, error) {
 	// TODO(joseb)
-	klog.Warning("DeleteVolume: Not implemented yet!")
+	klog.Warning("ListSnapshots: Not implemented yet!")
 	return &csi.ListSnapshotsResponse{}, nil
 }
 
@@ -385,13 +381,13 @@ func (cs *controllerServer) ControllerGetVolume(ctx context.Context, req *csi.Co
 
 func (cs *controllerServer) ControllerExpandVolume(ctx context.Context, req *csi.ControllerExpandVolumeRequest) (*csi.ControllerExpandVolumeResponse, error) {
 	klog.Infof("ControllerExpandVolume: called with args %+v", protosanitizer.StripSecrets(*req))
-	klog.Warning("DeleteVolume: Not implemented yet!")
+	klog.Warning("ControllerExpandVolume: Not implemented yet!")
 	return &csi.ControllerExpandVolumeResponse{}, nil
 }
 
 func (cs *controllerServer) ControllerModifyVolume(ctx context.Context, req *csi.ControllerModifyVolumeRequest) (*csi.ControllerModifyVolumeResponse, error) {
 	klog.Infof("ControllerModifyVolume: called with args %+v", protosanitizer.StripSecrets(*req))
-	klog.Warning("ModifyVolume: Not implemented yet!")
+	klog.Warning("ControllerModifyVolume: Not implemented yet!")
 	return &csi.ControllerModifyVolumeResponse{}, nil
 }
 

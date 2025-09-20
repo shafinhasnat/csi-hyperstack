@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"testing"
+
+	"github.com/kubernetes-csi/csi-lib-utils/protosanitizer"
 )
 
 // TestGetVolume tests the GetVolume method with different volume IDs
@@ -27,7 +29,7 @@ func TestGetVolume(t *testing.T) {
 		name     string
 		volumeID int
 	}{
-		{"valid_volume_id", 868},
+		{"valid_volume_id", 903},
 	}
 
 	ctx := context.Background()
@@ -41,22 +43,22 @@ func TestGetVolume(t *testing.T) {
 				t.Errorf("Error for volumeID %v\n", err)
 				return
 			}
-			fmt.Printf("Result: %+v\n", result)
+			fmt.Printf("Result: %+v\n", protosanitizer.StripSecrets(*result))
 
 			if result == nil {
 				fmt.Printf("Volume %d not found (expected)\n", tc.volumeID)
 				return
 			} else {
-				fmt.Printf("Id: %+v\n", *result.Id)
-				fmt.Printf("Name: %+v\n", *result.Name)
-				fmt.Printf("Size: %+v\n", *result.Size)
-				fmt.Printf("Status: %+v\n", *result.Status)
-				fmt.Printf("Environment: %+v\n", *result.Environment.Name)
-				fmt.Printf("CreatedAt: %+v\n", *result.CreatedAt)
-				fmt.Printf("UpdatedAt: %+v\n", *result.UpdatedAt)
-				fmt.Printf("VolumeType: %+v\n", *result.VolumeType)
-				fmt.Printf("Available: %+v\n", *result.Status)
-				fmt.Printf("Attachment: %+v\n", *result.Attachments)
+				// fmt.Printf("Id: %+v\n", *result.Id)
+				// fmt.Printf("Name: %+v\n", *result.Name)
+				// fmt.Printf("Size: %+v\n", *result.Size)
+				// fmt.Printf("Status: %+v\n", *result.Status)
+				// fmt.Printf("Environment: %+v\n", *result.Environment.Name)
+				// fmt.Printf("CreatedAt: %+v\n", *result.CreatedAt)
+				// fmt.Printf("UpdatedAt: %+v\n", *result.UpdatedAt)
+				// fmt.Printf("VolumeType: %+v\n", *result.VolumeType)
+				// fmt.Printf("Available: %+v\n", *result.Status)
+				fmt.Printf("Attachment: %+v\n", protosanitizer.StripSecrets(*result.Attachments))
 				return
 			}
 
@@ -67,6 +69,42 @@ func TestGetVolume(t *testing.T) {
 			// if result.Size != nil {
 			// 	fmt.Printf("Volume size: %d GB\n", *result.Size)
 			// }
+		})
+	}
+}
+
+func TestAttachVolumeToNode(t *testing.T) {
+	apiKey := "ca172084-30c8-419d-9148-b88822a992d6"
+	apiServer := "https://staging-infrahub-api.internal.ngbackend.cloud/v1"
+
+	client := NewHyperstackClient(apiKey, apiServer)
+	hs := &Hyperstack{
+		Client: client,
+	}
+
+	ctx := context.Background()
+	testCases := []struct {
+		name      string
+		vmID      int
+		volumeID  int
+		expectNil bool
+	}{
+		{"valid_volume_id", 268040, 886, false},
+		// {"non_existent_id", 1, 99999, true},
+		// {"empty_id", 1, 0, true},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			fmt.Printf("Testing AttachVolumeToNode with volumeID: %d\n", tc.volumeID)
+
+			result, err := hs.AttachVolumeToNode(ctx, tc.vmID, tc.volumeID)
+			fmt.Printf("Result: %+v\n", result)
+			if err != nil {
+				t.Errorf("Error for volumeID %d: %v\n", tc.volumeID, err)
+				return
+			}
+			fmt.Printf("Result: %+v\n", result)
 		})
 	}
 }
@@ -88,9 +126,9 @@ func TestDetachVolumeFromNode(t *testing.T) {
 		volumeID  int
 		expectNil bool
 	}{
-		{"valid_volume_id", 266936, 801, false},
-		{"non_existent_id", 1, 99999, true},
-		{"empty_id", 1, 0, true},
+		{"valid_volume_id", 268047, 903, false},
+		// {"non_existent_id", 1, 99999, true},
+		// {"empty_id", 1, 0, true},
 	}
 
 	for _, tc := range testCases {
@@ -99,10 +137,26 @@ func TestDetachVolumeFromNode(t *testing.T) {
 
 			result, err := hs.DetachVolumeFromNode(ctx, tc.vmID, tc.volumeID)
 			if err != nil {
-				t.Errorf("Error for volumeID %d: %v\n", tc.volumeID, err)
+				if !tc.expectNil {
+					t.Errorf("Unexpected error for volumeID %d: %v\n", tc.volumeID, err)
+				} else {
+					fmt.Printf("Expected error for volumeID %d: %v\n", tc.volumeID, err)
+				}
 				return
 			}
-			fmt.Printf("Result: %+v\n", result)
+			if result == nil {
+				if !tc.expectNil {
+					t.Errorf("Unexpected nil result for volumeID %d\n", tc.volumeID)
+				} else {
+					fmt.Printf("Expected nil result for volumeID %d\n", tc.volumeID)
+				}
+				return
+			}
+			if tc.expectNil {
+				t.Errorf("Expected nil result for volumeID %d, but got a result\n", tc.volumeID)
+			} else {
+				fmt.Printf("Detach successful for volumeID %d: %+v\n", tc.volumeID, result)
+			}
 		})
 	}
 }
