@@ -22,7 +22,7 @@ spec:
       hostNetwork: true
       containers:
         - name: csi-hyperstack-node
-          image: {{ .Values.components.csiHyperstack.image }}:{{ .Values.components.csiHyperstack.tag }}
+          image: {{ .Values.components.csiHyperstack.image }}:{{ .Values.components.csiHyperstack.tag | default .Chart.AppVersion }}
           imagePullPolicy: {{ .Values.components.csiHyperstack.imagePullPolicy}}
           securityContext:
             privileged: true
