@@ -30,7 +30,7 @@ spec:
             - "--endpoint=unix:///csi/csi.sock"
             - "--hyperstack-api-address={{ .Values.hyperstack.apiAddress }}"
             - "--hyperstack-api-key={{ .Values.hyperstack.apiKey }}"
-            - "--service-controller-enabled"
+            - "--service-controller-enabled=true"
           env:
             - name: CSI_ENDPOINT
               value: unix:///csi/csi.sock
