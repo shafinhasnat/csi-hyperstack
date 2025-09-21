@@ -36,6 +36,9 @@ func (ns *nodeServer) NodeStageVolume(ctx context.Context, req *csi.NodeStageVol
 	klog.Infof("\n==============NodeStageVolume: called================\n")
 	klog.Infof("NodeStageVolume: called with args %+v", protosanitizer.StripSecrets(*req))
 	devicename := req.PublishContext[volNameKeyFromControllerPublishVolume]
+	if devicename == "" {
+		return nil, status.Error(codes.InvalidArgument, "Device name not found in publish context. Please wait for volume to be attached.")
+	}
 	klog.Infof("NodeStageVolume: devicename from publish context: %s", devicename)
 	err := formateAndMakeFS(devicename, "ext4")
 	if err != nil {
