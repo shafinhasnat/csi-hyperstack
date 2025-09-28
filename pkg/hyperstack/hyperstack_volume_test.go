@@ -11,8 +11,8 @@ import (
 // TestGetVolume tests the GetVolume method with different volume IDs
 func TestGetVolume(t *testing.T) {
 	// Get API credentials from environment variables
-	apiKey := "ca172084-30c8-419d-9148-b88822a992d6"
-	apiServer := "https://staging-infrahub-api.internal.ngbackend.cloud/v1"
+	apiKey := ""
+	apiServer := ""
 
 	if apiKey == "" || apiServer == "" {
 		t.Skip("Skipping test: HYPERSTACK_API_KEY or HYPERSTACK_API_SERVER environment variables not set")
